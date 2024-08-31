@@ -7,6 +7,8 @@ const fileUpload = require("express-fileupload");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const flash = require("connect-flash");
+const RedisStore = require('connect-redis')(session);
+const redisClient = require('redis').createClient();
 
 
 let MONGO_URL = "mongodb://127.0.0.1:27017/recipes"
@@ -17,7 +19,10 @@ main().then((res)=> {
 .catch(err => console.log(err));
 
 async function main() {
-  await mongoose.connect(MONGO_URL);
+  await mongoose.connect(MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  });
 };
 
 app.use(express.urlencoded({extended: true}));
@@ -29,6 +34,7 @@ app.use(session({
   secret: "CookingBlogSecretSession",
   saveUninitialized: true,
   resave: true,
+  store: new RedisStore({ client: redisClient }),
 }));
 app.use(flash());
 app.use(fileUpload());
